@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Primeiro acesso</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+        }
+
+        .container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            background-color:  #FFC107;
+        }
+
+        .login-form {
+            flex: 0 0 30%;
+            padding: 32px;
+            background-color: #F8F9FA;
+            border-radius: 8px;
+            box-shadow: 0 1px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .login-form img {
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            font-size: 16px;
+            color: #888;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .form-group input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .invalid {
+            color: red;
+        }
+
+        .valid {
+            color: green;
+        }
+
+        .forgot-password {
+            margin-bottom: 16px;
+            text-align: right;
+        }
+
+        .forgot-password a {
+            color: #888;
+            text-decoration: none;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            background-color: #FFC107;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="login-form">
+        <img src="assets/luger-logo-horizontal-02.png" alt="Luger Logo">
+        <h2>Bem-vindo ao seu primeiro acesso!</h2>
+        <p>Primeiro vamos mudar sua senha, para uma mais segura.</p>
+        <form id="registrationForm" th:action="@{/register}" method="post" onsubmit="return comparePasswords()">
+            <div class="form-group">
+                <label for="cpf">CPF</label>
+                <input type="text" id="cpf" name="cpf" th:value="${cpf}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="password" placeholder="Senha" oninput="checkPasswordStrength(this)">
+                <!-- Adicione <p> para cada condição da senha -->
+                <p id="uppercase">Pelo menos um caractere maiúsculo.</p>
+                <p id="lowercase">Pelo menos um caractere minúsculo.</p>
+                <p id="number">Pelo menos um número.</p>
+                <p id="length">Ter no mínimo 8 caracteres de comprimento.</p>
+            </div>
+            <div class="form-group">
+                <label for="password2">Confirme sua senha</label>
+                <input type="password" id="password2" name="password2" placeholder="Confirme sua senha" oninput="checkPasswordMatch(this)">
+            </div>
+            <div id="password-strength">Por favor, insira uma senha válida.</div>
+            <button type="submit">Entrar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function comparePasswords() {
+        var password = document.getElementById('password').value;
+        var password2 = document.getElementById('password2').value;
+
+        var temMaiusculo = /[A-Z]/.test(password);
+        var temMinusculo = /[a-z]/.test(password);
+        var temNumero = /\d/.test(password);
+
+        var senhaValida = temMaiusculo && temMinusculo && temNumero && password.length >= 8;
+
+        document.getElementById('password-strength').style.color = senhaValida ? 'green' : 'red';
+
+        if (!senhaValida) {
+            alert('A senha deve conter pelo menos um caractere maiúsculo, um minúsculo e um número, com no mínimo 8 caracteres.');
+            return false;
+        }
+
+        if (password !== password2) {
+            alert('As senhas não coincidem. Por favor, digite novamente.');
+            return false;
+        }
+
+        return true;
+    }
+
+    function checkPasswordStrength(input) {
+        var value = input.value;
+
+        input.classList.toggle('invalid', !/[A-Z]/.test(value));
+        input.classList.toggle('valid', /[A-Z]/.test(value));
+        document.getElementById('uppercase').classList.toggle('invalid', !/[A-Z]/.test(value));
+        document.getElementById('uppercase').classList.toggle('valid', /[A-Z]/.test(value));
+
+        input.classList.toggle('invalid', !/[a-z]/.test(value));
+        input.classList.toggle('valid', /[a-z]/.test(value));
+        document.getElementById('lowercase').classList.toggle('invalid', !/[a-z]/.test(value));
+        document.getElementById('lowercase').classList.toggle('valid', /[a-z]/.test(value));
+
+        input.classList.toggle('invalid', !/\d/.test(value));
+        input.classList.toggle('valid', /\d/.test(value));
+        document.getElementById('number').classList.toggle('invalid', !/\d/.test(value));
+        document.getElementById('number').classList.toggle('valid', /\d/.test(value));
+
+        input.classList.toggle('invalid', value.length < 8);
+        input.classList.toggle('valid', value.length >= 8);
+        document.getElementById('length').classList.toggle('invalid', value.length < 8);
+        document.getElementById('length').classList.toggle('valid', value.length >= 8);
+    }
+
+    function checkPasswordMatch(input) {
+        var password = document.getElementById('password').value;
+
+        input.classList.toggle('invalid', input.value !== password);
+        input.classList.toggle('valid', input.value === password);
+    }
+</script>
+</body>
+</html>

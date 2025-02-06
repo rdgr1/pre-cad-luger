@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pré-Cadastro</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+<header>
+    <div class="navbar">
+        <div class="logo">
+            <img src="/imagens/luger-logo-horizontal-mobile2.png" alt="Luger Academia">
+            <h1 class="title"><strong>Pré</strong> - Cadastro</h1>
+        </div>
+        <h2>Relatório de Cadastro - <strong>Luger</strong></h2>
+    </div>
+</header>
+<main>
+    <div class="container">
+        <div th:each="conteudoList, iter : ${conteudos}">
+            <h3 class="relation-page"><strong>RELAÇÃO</strong> PÁGINA [[${iter.index + 1}]]</h3>
+            <div th:each="item : ${conteudoList.content}" class="info-box">
+                <div class="fields">
+                    <h2 th:text="${item.nome}">Nome</h2>
+                    <p><i class="icon-1"><img src="/imagens/Cpf-icon.png" alt="Ícone de CPF"></i> CPF: <span th:text="${item.cpf}">CPF</span></p>
+                    <p><i class="icon-2"><img src="/imagens/Cpf-icon.png" alt="Ícone de Email"></i> Email: <span th:text="${item.email}">Email</span></p>
+                    <p><i class="icon-3"><img src="/imagens/Limite-icon.png" alt="Ícone de Limite"></i> Limite: <span th:text="${item.limite}">Limite</span></p>
+                    <p><i class="icon-4"><img src="/imagens/Inicio-icon.png" alt="Ícone de Início"></i> Início: <span th:text="${item.inicio}">Início</span></p>
+                    <p><i class="icon-5"><img src="/imagens/Status-icon.png" alt="Ícone de Status"></i> Status: <span th:text="${item.status}">Status</span></p>
+                </div>
+                <div  class="pending-info">
+                    <h4>Pendências <span class="warning-icon">⚠️</span></h4>
+                    <div th:each="pendencial : ${item.pendencias}">
+                        <p  th:text="${pendencial}"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

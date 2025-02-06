@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termo de Serviço</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            color: black;
+            margin: 0;
+            padding: 0;
+        }
+        header{
+            background-color: #000000;
+            width: 100%;
+            height: 100px;
+            display: flex;
+
+            align-items: center;
+        }
+
+        .container {
+            max-width: 80%; margin: 50px auto; padding: 20px;
+            background-color: rgba( 00, 00, 00, 0.12);
+            height: 65vh;
+        }
+
+        .scrollable-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        #titleSpace{
+            width: 85%;
+            margin: -15px auto;
+
+        }
+
+
+        #termoTitle {
+            font-size: 24px;
+            color: black;
+            margin-top: 75px;
+            margin-bottom: -5px;
+
+        }
+        img{
+            margin-left: 40%;
+            position: relative;
+
+
+        }
+
+            hr {
+                display: block;
+                height: 1px;
+                border: 0;
+                border-top: 1px solid #FFC107;
+                margin: 1em 0;
+                padding: 0;
+
+            }
+
+
+        p {
+            text-align: justify;
+        }
+
+        .terms {
+            font-size: 14px;
+            color: black;
+        }
+
+        .terms ul {
+            padding-left: 20px;
+        }
+
+        .terms ul li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div>
+        <img src="https://www.luger-academia.com.br/images/luger-logo-horizontal-051.png" alt="logo"  width="180" >
+    </div>
+
+</header>
+<div id="titleSpace" >
+    <p id="termoTitle" style="position:relative ;">Termo de Serviço</p>
+    <hr >
+</div>
+
+
+
+<div class="container">
+
+    <iframe th:src="@{https://drive.google.com/file/d/1ZiOh7RkfNunR73U-a3478Ktn2I-72zSI/preview}"  width="100%" height="93%" style="border: 5px #FFC107;">
+    </iframe>
+    <div style="display: flex; height: 50px; align-items: center; justify-content:space-between">
+        <label for="aceitoTermo" style="margin-left: 16px"><input type="checkbox" id="aceitoTermo" style="margin-bottom: 10px; "> Aceito os termos</label>
+
+    <button onclick="proximaTela()" style="height:16px; display: flex; align-items: center; border-radius: 30px; border: none; background-color: #FFC107; padding: 16px;" th:data-mensagem="${toHexString}">Próxima tela</button>
+    </div>
+</div>
+<script>
+    function proximaTela() {
+        var aceitoTermo = document.getElementById("aceitoTermo").checked;
+        var mensagem = document.querySelector('button[data-mensagem]').getAttribute('data-mensagem');
+        if (aceitoTermo) {
+            window.location.href = "/public/termo/accept?request=" + mensagem;
+        } else {
+            alert("Você precisa aceitar os termos antes de continuar.");
+        }
+    }
+</script>
+</body>
+</html>
