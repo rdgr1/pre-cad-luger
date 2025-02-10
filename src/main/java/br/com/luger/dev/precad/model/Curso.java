@@ -18,6 +18,7 @@ import java.util.UUID;
 public class Curso {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+
     @Column(name = "id")
     private UUID id;
 
