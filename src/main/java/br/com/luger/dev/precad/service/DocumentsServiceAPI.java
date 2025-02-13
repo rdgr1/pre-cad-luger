@@ -57,11 +57,7 @@ public class DocumentsServiceAPI {
     }
 
     public ResponseEntity<List<Map<String, Object>>> getListDocuments(UUID idCadastroCurso) throws JsonProcessingException {
-        try {
-            return documentsController.getDocuments(idCadastroCurso);
-        } catch (JsonProcessingException ignored) {
-            return ResponseEntity.badRequest().body(null);
-        }
+        return documentsController.getDocuments(idCadastroCurso);
     }
 
     public ResponseEntity<String> deleteDocument(UUID id, String type) {
