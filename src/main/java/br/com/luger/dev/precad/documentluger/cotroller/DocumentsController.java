@@ -12,6 +12,7 @@ import br.com.luger.dev.precad.documentluger.service.interfaces.DocumentsService
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jcraft.jsch.*;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
+@Slf4j
 @NoArgsConstructor(force = true)
 @RestController
 @RequestMapping(value = "/public/documents/api")
@@ -129,47 +131,79 @@ public class DocumentsController extends CRUDcontroller<Documents> {
     }
 
     @GetMapping("/idCadastroCurso/{findByIdCadastroCurso}")
-    public ResponseEntity<List<Map<String, Object>>> getDocuments(@PathVariable UUID findByIdCadastroCurso) throws JsonProcessingException {
-        List<DocumentsDTOid> documentsDTOs = new ArrayList<>();
-        List<Documents> documentsList = findByIdCadastroCurso(findByIdCadastroCurso);
+    public ResponseEntity<List<Map<String, Object>>> getDocuments(@PathVariable UUID findByIdCadastroCurso) {
+        log.info("Requisição recebida para idCadastroCurso: {}", findByIdCadastroCurso);
 
-        for (Documents document : documentsList) {
-            String extensao = FilenameUtils.getExtension(document.getPath());
-            String encodedString;
-            try {
-                byte[] fileContent = downloadFileFromSftp(document.getPath());
-                encodedString = Base64.getEncoder().encodeToString(fileContent);
-                DocumentsDTOid documentDTO = new DocumentsDTOid();
-                BeanUtils.copyProperties(document, documentDTO);
-                documentDTO.setContent(encodedString);
-                documentDTO.setDocumentExtencao(extensao);
+        try {
+            List<DocumentsDTOid> documentsDTOs = new ArrayList<>();
+            List<Documents> documentsList = findByIdCadastroCurso(findByIdCadastroCurso);
 
-                documentsDTOs.add(documentDTO);
-            } catch (Exception ignored) {
-                getService().delete(document.getId());
-                continue;
+            if (documentsList == null || documentsList.isEmpty()) {
+                log.warn("Nenhum documento encontrado para idCadastroCurso: {}", findByIdCadastroCurso);
+                return ResponseEntity.ok(Collections.emptyList());
             }
 
+            for (Documents document : documentsList) {
+                try {
+                    if (document.getPath() == null || document.getPath().trim().isEmpty()) {
+                        log.warn("Caminho do arquivo está vazio para documento id: {}", document.getId());
+                        continue;
+                    }
+
+                    String extensao = FilenameUtils.getExtension(document.getPath());
+                    byte[] fileContent = downloadFileFromSftp(document.getPath());
+
+                    if (fileContent == null || fileContent.length == 0) {
+                        log.warn("Arquivo vazio para documento id: {} - Path: {}", document.getId(), document.getPath());
+                        continue;
+                    }
+
+                    String encodedString = Base64.getEncoder().encodeToString(fileContent);
+                    DocumentsDTOid documentDTO = new DocumentsDTOid();
+                    BeanUtils.copyProperties(document, documentDTO);
+                    documentDTO.setContent(encodedString);
+                    documentDTO.setDocumentExtencao(extensao);
+                    documentsDTOs.add(documentDTO);
+
+                } catch (Exception e) {
+                    log.error("Erro ao processar documento id {}: {}", document.getId(), e.getMessage(), e);
+                    try {
+                        getService().delete(document.getId());
+                        log.info("Documento id {} excluído devido a erro", document.getId());
+                    } catch (Exception deleteEx) {
+                        log.error("Falha ao excluir documento id {}: {}", document.getId(), deleteEx.getMessage(), deleteEx);
+                    }
+                }
+            }
+
+            List<Map<String, Object>> documentsDTOsAsMap = new ArrayList<>();
+            for (DocumentsDTOid documentsDTO : documentsDTOs) {
+                try {
+                    Map<String, Object> documentsDTOMap = new HashMap<>();
+                    documentsDTOMap.put("id", documentsDTO.getId());
+                    documentsDTOMap.put("documentType", documentsDTO.getDocumentType());
+                    documentsDTOMap.put("idCadastroCurso", documentsDTO.getIdCadastroCurso());
+                    documentsDTOMap.put("content", documentsDTO.getContent());
+                    documentsDTOMap.put("documentExtencao", documentsDTO.getDocumentExtencao());
+                    documentsDTOMap.put("replacementAdditionalText", documentsDTO.getReplacementAdditionalText());
+                    documentsDTOMap.put("validity", documentsDTO.getValidity());
+                    documentsDTOMap.put("status", documentsDTO.getStatus());
+
+                    log.debug("Documento processado: {}", documentsDTOMap);
+                    documentsDTOsAsMap.add(documentsDTOMap);
+                } catch (Exception e) {
+                    log.error("Erro ao converter documento id {} para Map: {}", documentsDTO.getId(), e.getMessage(), e);
+                }
+            }
+
+            return ResponseEntity.ok(documentsDTOsAsMap);
+
+        } catch (Exception e) {
+            log.error("Erro inesperado no endpoint getDocuments: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
         }
-
-        List<Map<String, Object>> documentsDTOsAsMap = new ArrayList<>();
-        for (DocumentsDTOid documentsDTO : documentsDTOs) {
-            Map<String, Object> documentsDTOMap = new HashMap<>();
-            documentsDTOMap.put("id", documentsDTO.getId());
-            documentsDTOMap.put("documentType", documentsDTO.getDocumentType());
-            documentsDTOMap.put("idCadastroCurso", documentsDTO.getIdCadastroCurso());
-            documentsDTOMap.put("content", documentsDTO.getContent());
-            documentsDTOMap.put("documentExtencao", documentsDTO.getDocumentExtencao());
-            documentsDTOMap.put("replacementAdditionalText", documentsDTO.getReplacementAdditionalText());
-            documentsDTOMap.put("validity", documentsDTO.getValidity());
-            documentsDTOMap.put("status", documentsDTO.getStatus());
-            System.out.print("{\n.....id:" + documentsDTO.getId() + "\n.....documentType" + documentsDTO.getDocumentType() + "\n.....idCadastroCurso" + documentsDTO.getIdCadastroCurso() + "\n.....content" + documentsDTO.getContent().length() + "\n.....documentExtencao" + documentsDTO.getDocumentExtencao() + "\n.....replacementAdditionalText" + documentsDTO.getReplacementAdditionalText() + "\n.....validity" + documentsDTO.getValidity() + "\n.....status" + documentsDTO.getStatus());
-
-            documentsDTOsAsMap.add(documentsDTOMap);
-        }
-
-        return ResponseEntity.ok().body(documentsDTOsAsMap);
     }
+
 
     private void uploadFileToSftp(byte[] fileContent, String remoteFilePath) throws Exception {
         JSch jsch = new JSch();
